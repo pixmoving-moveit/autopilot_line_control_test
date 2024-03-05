@@ -29,6 +29,10 @@ class SteerBrakeTestPubsher(Node):
         self.brake_pub    = self.create_publisher(*brake_ctrl_pub)
         self.park_pub     = self.create_publisher(*park_ctrl_pub)
         self.vehicle_pub  = self.create_publisher(*vehicle_ctrl_pub)
+
+        self.gear = 4
+        self.driver_mode = 0
+        self.steer_mode = 0
         
         self.init_msg()
         
@@ -40,9 +44,7 @@ class SteerBrakeTestPubsher(Node):
             self.listener_callback,
             10)
         
-        self.gear = 0
-        self.driver_mode = 0
-        self.steer_mode = 0
+
 
     
     def listener_callback(self, msg:Float32MultiArray):
@@ -50,9 +52,9 @@ class SteerBrakeTestPubsher(Node):
         self.steer_msg.steer_angle_target = msg.data.index(1)  # steer_number
         self.brake_msg.brake_pedal_target  = msg.data.index(2)  # brake_number
         
-        self.steer_mode = msg.data.index(3)
-        self.driver_mode = msg.data.index(4)
-        self.gear = msg.data.index(5)
+        self.steer_mode = int(msg.data.index(3))
+        self.driver_mode = int(msg.data.index(4))
+        self.gear = int(msg.data.index(5))
     
     def init_msg(self):
         self.throttle_msg = ThrottleCommand()
@@ -75,7 +77,7 @@ class SteerBrakeTestPubsher(Node):
         # ----------------------------------------
         self.gear_msg     = GearCommand()
         # self.gear_msg.header
-        self.gear_msg.gear_target = self.steer_mode  # D档
+        self.gear_msg.gear_target = self.gear 
         self.gear_msg.gear_en_ctrl = True
         
         self.park_msg     = ParkCommand()

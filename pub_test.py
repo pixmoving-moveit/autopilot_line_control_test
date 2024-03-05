@@ -14,21 +14,26 @@ class Int8MultiArrayPublisher(Node):
         self.start_time = self.get_clock().now().seconds_nanoseconds()[0]
         self.msg = Float32MultiArray()
         
-        
-        self.index_vehile_speed = 5*0.277   # 车速 5*0.277 5km/h
-        self.index_steer = 0                # 转向值
-        self.index_braek = 0                # 刹车值
+        self.index_vehile_speed = 5*0.277     # 车速 5*0.277 5km/h
+        self.index_steer = 0.0                # 转向值
+        self.index_braek = 0.0                # 刹车值
         self.index_steer_mode = 2           # 转向模式 1 异向模式
         self.index_dring_mode = 1           # 动力模式 0 踏板模式 1 速度模式
         self.index_gear = 4                 # 档位 4 D
-          
+        
     
     def timer_callback(self):
-        self.msg.data = [self.index_vehile_speed, self.index_steer, self.index_braek, 
-                         self.index_steer_mode, self.index_dring_mode, self.index_gear] 
         self.logical_processing()
-        self.get_logger().info('Publishing: {}'.format(self.msg.data))
+        self.msg.data = [
+            float(self.index_vehile_speed), 
+            float(self.index_steer), 
+            float(self.index_braek),
+            float(self.index_steer_mode), 
+            float(self.index_dring_mode), 
+            float(self.index_gear)]
+        
         self.publisher_.publish(self.msg)
+        self.get_logger().info('Publishing: {}'.format(self.msg.data))
 
 #------------------------------------------------------------------------------------------------------
     # 请在这里实现逻辑变换--这个函数1s执行一次

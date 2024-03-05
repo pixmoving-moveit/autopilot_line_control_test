@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "/home/lcfc/pix/robobus/autoware/install/pix_robobus_driver_msgs/local/lib/python3.10/dist-packages"
+    ]
+}

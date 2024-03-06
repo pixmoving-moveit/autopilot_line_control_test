@@ -3,27 +3,37 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
 import math
-from time import time
+from time import time, sleep
 
 class Int8MultiArrayPublisher(Node):
     def __init__(self):
         super().__init__('custom_int8multiarray_publisher')
         self.publisher_ = self.create_publisher(Float32MultiArray, 'speed_steer_brake_test_topic', 10)
-        timer_period = 1  # seconds
+        timer_period = 0.02  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.start_time = self.get_clock().now().seconds_nanoseconds()[0]
         self.msg = Float32MultiArray()
         
-        self.index_vehile_speed = 5*0.277     # 车速 5*0.277 5km/h
+        self.index_vehile_speed = 5     # 车速 5*0.277 5km/h
         self.index_steer = 0.0                # 转向值
         self.index_braek = 0.0                # 刹车值
         self.index_steer_mode = 2           # 转向模式 1 异向模式
         self.index_dring_mode = 1           # 动力模式 0 踏板模式 1 速度模式
         self.index_gear = 4                 # 档位 4 D
+        self.sign = -1
+        self.count = 0
         
     
     def timer_callback(self):
-        self.logical_processing()
+        self.steering_test()
+        self.count += 1
+        if(self.count == 250):
+            self.sign *= -1
+            self.count = 0
+        
+
+    def steering_test(self):
+        self.index_steer = 3 * self.sign  # 转向值 
         self.msg.data = [
             float(self.index_vehile_speed), 
             float(self.index_steer), 
@@ -31,17 +41,8 @@ class Int8MultiArrayPublisher(Node):
             float(self.index_steer_mode), 
             float(self.index_dring_mode), 
             float(self.index_gear)]
-        
         self.publisher_.publish(self.msg)
-        self.get_logger().info('Publishing: {}'.format(self.msg.data))
-
-#------------------------------------------------------------------------------------------------------
-    # 请在这里实现逻辑变换--这个函数1s执行一次
-    def logical_processing(self):
-        current_time = self.get_clock().now().seconds_nanoseconds()[0]
-        elapsed = current_time - self.start_time
-        self.index_steer = abs(500 * math.sin(elapsed))  # 转向值 
-        self.index_braek = 10 if elapsed % 4 == 0 else 0  # 刹车值
+        
 #------------------------------------------------------------------------------------------------------
 
 def main(args=None):

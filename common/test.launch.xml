@@ -5,7 +5,7 @@
     <!-- ros2_socketcan -->
     <include file="$(find-pkg-share ros2_socketcan)/launch/socket_can_bridge.launch.xml"/>
     <!-- pix_robobus_driver -->
-    <include file="$(find-pkg-share pix_robobus_driver)/launch/pix_driver.launch.xml"/>
+    <include file="$(find-pkg-share pix_robobus_driver)/launch/pix_robobus_driver.launch.xml"/>
 
     <executable cmd="$(var script_path)/common/speed_steering_brake_test.py"/>
     <executable cmd="$(var script_path)/pub_test.py"/>

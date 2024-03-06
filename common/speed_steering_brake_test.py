@@ -31,10 +31,11 @@ class SteerBrakeTestPubsher(Node):
         self.vehicle_pub  = self.create_publisher(*vehicle_ctrl_pub)
 
         self.gear = 4
-        self.driver_mode = 0
+        self.driver_mode = 1
         self.steer_mode = 0
         
         self.init_msg()
+        self.data_received_time = self.get_clock().now()
         
         self.timer = self.create_timer(1/60, self.timer_callback)
         
@@ -48,56 +49,60 @@ class SteerBrakeTestPubsher(Node):
 
     
     def listener_callback(self, msg:Float32MultiArray):
-        self.throttle_msg.drive_speed_target = msg.data.index(0)  # vehicle_speed
-        self.steer_msg.steer_angle_target = msg.data.index(1)  # steer_number
-        self.brake_msg.brake_pedal_target  = msg.data.index(2)  # brake_number
+        self.data_received_time = self.get_clock().now()
+        # self.throttle_msg.drive_speed_target = float(msg.data[0])  # vehicle_speed
+        self.throttle_msg.drive_throttle_pedal_target = float(msg.data[0])  # vehicle_speed
+        self.steer_msg.steer_angle_target = int(msg.data[1])  # steer_number
+        self.brake_msg.brake_pedal_target  = float(msg.data[2])  # brake_number
         
-        self.steer_mode = int(msg.data.index(3))
-        self.driver_mode = int(msg.data.index(4))
-        self.gear = int(msg.data.index(5))
+        self.steer_mode = 2
+        self.driver_mode = 0
+        self.gear = 4
+        
     
     def init_msg(self):
         self.throttle_msg = ThrottleCommand()
-        # self.throttle_msg.header
-        self.throttle_msg.drive_throttle_pedal_target
-        self.throttle_msg.drive_speed_target
         self.throttle_msg.drive_en_ctrl = True
         
         self.steer_msg    = SteeringCommand()
-        # self.steer_msg.header
-        self.steer_msg.steer_angle_speed = 125
-        self.steer_msg.steer_angle_target 
+        self.steer_msg.steer_angle_speed = 400
         self.steer_msg.steer_en_ctrl = True 
         
         self.brake_msg    = BrakeCommand()
-        # self.brake_msg.header
-        self.brake_msg.brake_pedal_target  
         self.brake_msg.brake_en_ctrl = True
         
         # ----------------------------------------
         self.gear_msg     = GearCommand()
-        # self.gear_msg.header
-        self.gear_msg.gear_target = self.gear 
         self.gear_msg.gear_en_ctrl = True
         
         self.park_msg     = ParkCommand()
-        # self.park_msg.header
         self.park_msg.park_target = False
         self.park_msg.park_en_ctrl = True
         
         self.vehicle_msg  = VehicleModeCommand()
-        # self.vehicle_msg.header
-        self.vehicle_msg.steer_mode_ctrl = self.steer_mode   # 异向转向
-        self.vehicle_msg.drive_mode_ctrl = self.driver_mode  # 0 踏板模式 1 转向模式
+        
         
     
     def timer_callback(self):
-        self.throttle_pub.publish(self.throttle_msg) 
-        self.gear_pub.publish(self.gear_msg)     
-        self.steer_pub.publish(self.steer_msg)    
-        self.brake_pub.publish(self.brake_msg)    
-        self.park_pub.publish(self.park_msg)     
-        self.vehicle_pub.publish(self.vehicle_msg)  
+        now = self.get_clock().now()
+        time_diff = (now - self.data_received_time)
+        time_diff_secs = 1.0*time_diff.nanoseconds*10e-9
+        if(time_diff_secs<0.1):
+            self.vehicle_msg.steer_mode_ctrl = self.steer_mode   # 异向转向
+            self.vehicle_msg.drive_mode_ctrl = self.driver_mode  # 0 踏板模式 1 速度模式
+            self.gear_msg.gear_target = self.gear
+            self.throttle_msg.header.stamp = self.data_received_time.to_msg()
+            self.gear_msg.header.stamp = self.data_received_time.to_msg()
+            self.steer_msg.header.stamp = self.data_received_time.to_msg()
+            self.brake_msg.header.stamp = self.data_received_time.to_msg()
+            self.park_msg.header.stamp = self.data_received_time.to_msg()
+            self.vehicle_msg.header.stamp = self.data_received_time.to_msg()
+            self.throttle_pub.publish(self.throttle_msg) 
+            self.gear_pub.publish(self.gear_msg)     
+            self.steer_pub.publish(self.steer_msg)    
+            self.brake_pub.publish(self.brake_msg)    
+            self.park_pub.publish(self.park_msg)     
+            self.vehicle_pub.publish(self.vehicle_msg)  
 
 
 def main(args=None):
